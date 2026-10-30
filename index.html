@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UNE LIFE SharePoint User Guide</title>
+<style>
+  :root {
+    --brand: #1b7a3d;
+    --brand-dark: #115228;
+    --accent: #a6e22e;
+    --bg: #f4f8f4;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #5f6f64;
+    --border: #dce6dd;
+    --nav-h: 60px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* NAV BAR */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--brand);
+    color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; text-decoration: none; color: #fff; }
+  .brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; }
+  .nav-links a {
+    display: block; padding: 8px 12px; border-radius: 6px;
+    color: #dff5e4; text-decoration: none; font-size: .88rem; white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .nav-links a:hover { background: var(--brand-dark); color: #fff; }
+  .nav-links a.active { background: var(--accent); color: #12300a; font-weight: 600; }
+  .menu-btn {
+    display: none; background: none; border: 1px solid #ffffff66; color: #fff;
+    padding: 6px 12px; border-radius: 6px; font-size: 1rem; cursor: pointer;
+  }
+
+  /* HEADER */
+  header.hero {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; padding: 48px 24px 56px; text-align: center;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 2rem; }
+  header.hero p { margin: 4px 0; color: #dff5e4; }
+  .badges { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { background: #ffffff1f; border: 1px solid #a6e22e80; padding: 6px 14px; border-radius: 20px; font-size: .85rem; }
+
+  /* LAYOUT */
+  main { max-width: 900px; margin: -28px auto 40px; padding: 0 20px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px 32px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  h2 { margin-top: 0; color: var(--brand); border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
+  h3 { color: var(--brand-dark); margin-bottom: 6px; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  code { background: #e9f3ea; padding: 2px 6px; border-radius: 4px; font-size: .9em; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .94rem; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: #e3f4d0; color: var(--brand-dark); }
+  tr:nth-child(even) td { background: #f9fcf9; }
+  .callout { background: #f3fbe0; border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 4px; margin: 14px 0; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .do { border-top: 4px solid #2e9e5b; padding-top: 8px; }
+  .dont { border-top: 4px solid #cc3a3a; padding-top: 8px; }
+  .hidden { display: none; }
+
+  /* SEARCH */
+  .search-wrap { max-width: 900px; margin: 0 auto 20px; padding: 0 20px; }
+  #search {
+    width: 100%; padding: 12px 16px; font-size: 1rem; border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  #search:focus { outline: 2px solid var(--accent); border-color: var(--brand); }
+  #noResults { text-align: center; color: var(--muted); display: none; padding: 20px; }
+  mark { background: #d9f99d; padding: 0 2px; }
+
+  /* BACK TO TOP */
+  #topBtn {
+    position: fixed; bottom: 24px; right: 24px; background: var(--brand); color: var(--accent);
+    border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem;
+    cursor: pointer; display: none; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+
+  @media (max-width: 960px) {
+    .menu-btn { display: block; }
+    .nav-links {
+      display: none; position: absolute; top: var(--nav-h); left: 0; right: 0;
+      background: var(--brand-dark); flex-direction: column; padding: 8px 12px 14px;
+    }
+    .nav-links.open { display: flex; }
+    .cols { grid-template-columns: 1fr; }
+    section { padding: 22px 18px; }
+  }
+  @media print {
+    nav, .search-wrap, #topBtn { display: none; }
+    section { break-inside: avoid; box-shadow: none; }
+  }
+</style>
+<script>
+                window.load_data_from_csv = (filename) => {
+                    // Implementation needed when code is downloaded
+                };
+
+                window.save_data_to_csv = (filename, data) => {
+                    // Implementation needed when code is downloaded
+                };
+
+                window.call_llm = (system_prompt, user_messages, json_fields) => {
+                    // Implementation needed when code is downloaded
+                };
+            </script></head>
+<body>
+<nav>
+<a class="brand" href="#top">UNE <span>LIFE</span> | SharePoint Guide</a>
+<button aria-label="Toggle menu" class="menu-btn" id="menuBtn">☰ Menu</button>
+<ul class="nav-links" id="navLinks">
+<li><a href="#overview">Overview</a></li>
+<li><a href="#access">Access</a></li>
+<li><a href="#structure">Structure</a></li>
+<li><a href="#naming">Naming</a></li>
+<li><a href="#tasks">Tasks</a></li>
+<li><a href="#dos">Do's &amp; Don'ts</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#help">Help</a></li>
+<li><a href="#quickref">Quick Ref</a></li>
+</ul>
+</nav>
+<header class="hero" id="top">
+<h1>UNE LIFE SharePoint User Guide</h1>
+<p>Everything you need to work in the new SharePoint structure</p>
+<div class="badges">
+<span class="badge">Go-live: Monday, 2 November 2026</span>
+<span class="badge">Audience: All UNE LIFE staff</span>
+<span class="badge">Support: IT Support (Joshua Webel)</span>
+</div>
+</header>
+<div class="search-wrap" style="margin-top:36px;">
+<input id="search" placeholder="Search this guide (e.g. share, sync, naming)..." type="search"/>
+</div>
+<main>
+<p id="noResults">No sections match your search.</p>
+<section id="overview">
+<h2>1. Overview</h2>
+<p>From 2 November 2026, UNE LIFE files will be stored in a new, standardised SharePoint structure. The aim is to make files easier to find, keep naming consistent, and make access to sensitive content more secure.</p>
+<div class="cols">
+<div>
+<h3>What's changing</h3>
+<ul>
+<li>A new folder structure organised by division/team</li>
+<li>Consistent naming conventions</li>
+<li>Access based on role, so you will see only what is relevant to you</li>
+<li>Files will be migrated by IT and nominated staff before go-live</li>
+</ul>
+</div>
+<div>
+<h3>What's not changing</h3>
+<ul>
+<li>You still sign in with your UNE LIFE corporate account</li>
+<li>Office apps (Word, Excel, PowerPoint) work as they always have</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="access">
+<h2>2. Accessing SharePoint</h2>
+<ol>
+<li>Open a browser (Edge or Chrome recommended).</li>
+<li>Go to the SharePoint site link supplied by IT.</li>
+<li>Sign in with your UNE LIFE corporate email and password, then complete MFA if prompted.</li>
+<li>Select your team or division site from the navigation menu.</li>
+</ol>
+<div class="callout"><strong>Tip:</strong> Click the <strong>star (Follow)</strong> icon on any site, or select <strong>Add shortcut to OneDrive</strong>, to find it quickly later.</div>
+<p><strong>Can't see a folder you need?</strong> Don't try to work around it. Submit an access request to IT, with approval from your manager.</p>
+</section>
+<section id="structure">
+<h2>3. Navigating the New Structure</h2>
+<table>
+<thead><tr><th>Level</th><th>Description</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Site</td><td>Division or team</td><td><code>[Division Name]</code></td></tr>
+<tr><td>Document Library</td><td>Main storage area</td><td><code>Documents</code></td></tr>
+<tr><td>Top-level folders</td><td>Function or topic</td><td><code>01 Admin</code>, <code>02 Finance</code>, <code>03 Projects</code></td></tr>
+<tr><td>Sub-folders</td><td>Specific activity or year</td><td><code>2026</code>, <code>Policies</code></td></tr>
+</tbody>
+</table>
+<h3>Best practices</h3>
+<ul>
+<li>Keep folder depth to <strong>6 levels or fewer</strong></li>
+<li>Avoid creating new top-level folders. Ask IT first.</li>
+<li>Use the <strong>search bar</strong> at the top of the page. It searches file names and content you have access to.</li>
+</ul>
+</section>
+<section id="naming">
+<h2>4. Naming Conventions</h2>
+<p>Consistent names make search and sorting reliable.</p>
+<ul>
+<li>Use clear, descriptive names</li>
+<li>Avoid double spaces, typos, and inconsistent capitalisation</li>
+<li>Avoid special characters: <code>~ " # % &amp; * : &lt; &gt; ? / \ { | }</code></li>
+<li>Put dates in <strong>YYYY-MM-DD</strong> format</li>
+<li>Use version labels where needed (e.g., <code>v1</code>, <code>v2</code>, <code>FINAL</code>)</li>
+</ul>
+<h3>Examples</h3>
+<table>
+<thead><tr><th>Avoid</th><th>Use instead</th></tr></thead>
+<tbody>
+<tr><td><code>budget  final FINAL (2).xlsx</code></td><td><code>2026-10-30 Budget Report v2.xlsx</code></td></tr>
+<tr><td><code>meeting notes oct.docx</code></td><td><code>2026-10-15 Team Meeting Notes.docx</code></td></tr>
+</tbody>
+</table>
+</section>
+<section id="tasks">
+<h2>5. Everyday Tasks</h2>
+<h3>Upload files</h3>
+<ol>
+<li>Open the target folder.</li>
+<li>Select <strong>Upload</strong>, then <strong>Files</strong> or <strong>Folder</strong>, or drag and drop from File Explorer.</li>
+</ol>
+<h3>Create a new file or folder</h3>
+<p>Select <strong>New</strong>, then choose a folder or Office document type.</p>
+<h3>Edit and collaborate</h3>
+<ul>
+<li>Open files in the browser or desktop app.</li>
+<li>Multiple people can edit at the same time. Look for coloured cursors showing who is editing.</li>
+<li>Use <strong>Comments</strong> and <strong>@mentions</strong> to give feedback instead of emailing copies.</li>
+</ul>
+<h3>Share a file</h3>
+<ol>
+<li>Select the file and click <strong>Share</strong>.</li>
+<li>Prefer <strong>People with existing access</strong> or <strong>Specific people</strong>.</li>
+<li>Do not use "Anyone with the link" for internal or sensitive documents.</li>
+<li>Add a message and select <strong>Send</strong>.</li>
+</ol>
+<h3>Sync to your computer</h3>
+<p>Select <strong>Sync</strong> in the library toolbar. The folder will then appear in File Explorer under your UNE LIFE account.</p>
+<h3>Restore a deleted or earlier version</h3>
+<ul>
+<li><strong>Deleted file:</strong> go to the <strong>Recycle bin</strong> (left menu) and select <strong>Restore</strong>.</li>
+<li><strong>Earlier version:</strong> right-click the file, select <strong>Version history</strong>, then choose <strong>Restore</strong>.</li>
+</ul>
+</section>
+<section id="dos">
+<h2>6. Do's and Don'ts</h2>
+<div class="cols">
+<div class="do">
+<h3>Do</h3>
+<ul>
+<li>Save files directly to SharePoint, not local drives or USB</li>
+<li>Check you are in the correct folder before uploading</li>
+<li>Share links instead of attaching copies</li>
+<li>Report anything that looks misplaced or inaccessible</li>
+</ul>
+</div>
+<div class="dont">
+<h3>Don't</h3>
+<ul>
+<li>Store passwords or sensitive personal data in open folders</li>
+<li>Create duplicate copies of the same document</li>
+<li>Move or rename large folders without checking with IT</li>
+<li>Share files externally without approval</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>7. Troubleshooting</h2>
+<table>
+<thead><tr><th>Issue</th><th>Solution</th></tr></thead>
+<tbody>
+<tr><td>"Access denied"</td><td>Request access through IT with manager approval</td></tr>
+<tr><td>Can't find a file</td><td>Use search, check the Recycle bin, then contact IT</td></tr>
+<tr><td>Sync not working</td><td>Check the OneDrive icon in the taskbar, then sign out and back in</td></tr>
+<tr><td>File locked for editing</td><td>Someone else has it open. Wait for them to close it or open it in the browser.</td></tr>
+<tr><td>Sign-in or certificate warnings on external sites</td><td>Try a private/incognito window or sign out of other corporate accounts</td></tr>
+</tbody>
+</table>
+</section>
+<section id="help">
+<h2>8. Getting Help</h2>
+<p>When contacting IT, include:</p>
+<ul>
+<li>Your name and division</li>
+<li>The site/folder name or link</li>
+<li>A screenshot of any error message</li>
+<li>What you were trying to do</li>
+</ul>
+</section>
+<section id="quickref">
+<h2>9. Quick Reference</h2>
+<ul>
+<li><strong>Search:</strong> use the bar at the top of any SharePoint page</li>
+<li><strong>Follow a site:</strong> click the star</li>
+<li><strong>Sync a library:</strong> use the Sync button</li>
+<li><strong>Share:</strong> use specific people, not "Anyone"</li>
+<li><strong>Naming:</strong> <code>YYYY-MM-DD Description vX</code></li>
+</ul>
+</section>
+</main>
+<footer>UNE LIFE IT Support · SharePoint User Guide · Go-live 2 November 2026</footer>
+<button aria-label="Back to top" id="topBtn">↑</button>
+<script>
+  const links = document.querySelectorAll('.nav-links a');
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.getElementById('navLinks');
+  const menuBtn = document.getElementById('menuBtn');
+  const topBtn = document.getElementById('topBtn');
+
+  // Mobile menu toggle
+  menuBtn.addEventListener('click', () => navLinks.classList.toggle('open'));
+  links.forEach(l => l.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // Highlight active section in nav
+  function setActive() {
+    let current = '';
+    const offset = 120;
+    sections.forEach(sec => {
+      if (sec.classList.contains('hidden')) return;
+      if (window.scrollY + offset >= sec.offsetTop) current = sec.id;
+    });
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+    topBtn.style.display = window.scrollY > 400 ? 'block' : 'none';
+  }
+  window.addEventListener('scroll', setActive);
+  window.addEventListener('load', setActive);
+
+  // Back to top
+  topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Search filter
+  const search = document.getElementById('search');
+  const noResults = document.getElementById('noResults');
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    sections.forEach(sec => {
+      const match = !q || sec.textContent.toLowerCase().includes(q);
+      sec.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+    links.forEach(l => {
+      const target = document.querySelector(l.getAttribute('href'));
+      l.parentElement.style.display = target && target.classList.contains('hidden') ? 'none' : '';
+    });
+    noResults.style.display = visible ? 'none' : 'block';
+    setActive();
+  });
+</script>
+</body>
+</html>
