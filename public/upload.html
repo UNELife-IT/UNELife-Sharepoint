@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Upload a Guide</title>
+<style>
+  :root {
+    --brand: #1b7a3d;
+    --brand-dark: #115228;
+    --accent: #a6e22e;
+    --bg: #f4f8f4;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #5f6f64;
+    --border: #dce6dd;
+    --danger: #cc3a3a;
+    --nav-h: 60px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--brand);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; text-decoration: none; color: #fff; }
+  .brand span { color: var(--accent); }
+  header.hero {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; padding: 40px 24px 52px; text-align: center;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 2rem; }
+  header.hero p { margin: 4px 0; color: #dff5e4; }
+  main { max-width: 760px; margin: -28px auto 40px; padding: 0 20px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px 32px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  h2 { margin-top: 0; color: var(--brand); border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
+  label { display: block; font-weight: 600; color: var(--brand-dark); margin: 16px 0 4px; }
+  .hint { font-weight: 400; color: var(--muted); font-size: .85rem; }
+  input, textarea {
+    width: 100%; padding: 10px 12px; font: inherit; font-size: .95rem;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text);
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--brand); }
+  textarea { min-height: 70px; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 6px; padding: 10px 20px;
+    border: 1px solid var(--brand); background: var(--brand); color: #fff; font-weight: 600;
+  }
+  button:hover { background: var(--brand-dark); }
+  button:disabled { opacity: .6; cursor: default; }
+  button.danger { background: #fff; color: var(--danger); border-color: var(--danger); padding: 6px 14px; font-weight: 500; }
+  button.danger:hover { background: #fdeeee; }
+  .actions { margin-top: 22px; }
+  .msg { margin: 16px 0 0; padding: 10px 14px; border-radius: 6px; display: none; }
+  .msg.ok { display: block; background: #f3fbe0; border-left: 4px solid var(--accent); }
+  .msg.err { display: block; background: #fdeeee; border-left: 4px solid var(--danger); }
+  .msg a { color: var(--brand); font-weight: 600; }
+  .uploads { list-style: none; padding: 0; margin: 0; }
+  .uploads li {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .uploads li:last-child { border-bottom: none; }
+  .uploads a { color: var(--brand); font-weight: 600; text-decoration: none; }
+  .uploads a:hover { text-decoration: underline; }
+  .uploads .meta { font-size: .82rem; color: var(--muted); }
+  .muted { color: var(--muted); }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    main { padding: 0 16px; }
+    section { padding: 22px 18px; }
+    .row { grid-template-columns: 1fr; gap: 0; }
+  }
+</style>
+</head>
+<body>
+<nav>
+<a class="brand" href="./" title="Back to the IT Library">← UNE <span>LIFE</span> | IT Library</a>
+</nav>
+<header class="hero">
+<h1>Upload a Guide</h1>
+<p>Add an HTML guide to the IT Library</p>
+</header>
+<main>
+<section>
+<h2>New guide</h2>
+<p class="muted" id="disabledNote" hidden>Uploads are turned off on this server. Ask IT Support to set an upload password.</p>
+<form id="form">
+<label for="file">HTML file</label>
+<input accept=".html,.htm,text/html" id="file" required type="file"/>
+
+<label for="title">Title</label>
+<input id="title" required type="text"/>
+
+<label for="summary">Summary <span class="hint">(shown on the library page)</span></label>
+<textarea id="summary"></textarea>
+
+<div class="row">
+<div>
+<label for="category">Category</label>
+<input id="category" list="categories" placeholder="e.g. SharePoint" type="text"/>
+<datalist id="categories"></datalist>
+</div>
+<div>
+<label for="date">Date</label>
+<input id="date" type="date"/>
+</div>
+</div>
+
+<label for="filename">Web address <span class="hint">(letters, numbers and dashes)</span></label>
+<input id="filename" placeholder="e.g. teams-meeting-tips" type="text"/>
+
+<label for="password">Upload password</label>
+<input autocomplete="current-password" id="password" required type="password"/>
+
+<div class="actions"><button id="submit" type="submit">Upload guide</button></div>
+<p class="msg" id="msg"></p>
+</form>
+</section>
+
+<section>
+<h2>Uploaded guides</h2>
+<p class="muted">Uploading a guide with the same web address replaces it. Deleting needs the upload password above.</p>
+<ul class="uploads" id="uploads"></ul>
+<p class="muted" id="noUploads">Nothing uploaded yet.</p>
+<p class="msg" id="listMsg"></p>
+</section>
+</main>
+<footer>UNE LIFE IT Support · IT Library</footer>
+<script>
+  const $ = id => document.getElementById(id);
+  const form = $('form');
+  const fileInput = $('file');
+  let fileText = '';
+
+  $('date').value = new Date().toISOString().slice(0, 10);
+
+  function slugify(s) {
+    return s.toLowerCase().replace(/\.html?$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  }
+
+  function showMsg(el, text, ok) {
+    el.textContent = text;
+    el.className = 'msg ' + (ok ? 'ok' : 'err');
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    fileText = file ? await file.text() : '';
+    if (!file) return;
+    // Prefill from the file's own <title> and name, without overwriting anything already typed.
+    const doc = new DOMParser().parseFromString(fileText, 'text/html');
+    const pageTitle = (doc.title || '').trim();
+    if (!$('title').value) $('title').value = pageTitle || file.name.replace(/\.html?$/i, '');
+    if (!$('filename').value) $('filename').value = slugify($('title').value || file.name);
+    if (!$('summary').value) {
+      const desc = doc.querySelector('meta[name="description"]');
+      if (desc) $('summary').value = desc.content;
+    }
+  });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!fileText.trim()) return showMsg($('msg'), 'Choose an HTML file first.', false);
+    $('submit').disabled = true;
+    try {
+      const res = await fetch('api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Upload-Password': $('password').value },
+        body: JSON.stringify({
+          title: $('title').value,
+          summary: $('summary').value,
+          category: $('category').value,
+          date: $('date').value,
+          filename: $('filename').value,
+          html: fileText,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+      const link = 'articles/' + data.entry.file;
+      $('msg').innerHTML = `${data.replaced ? 'Replaced' : 'Uploaded'} <a href="${escapeHtml(link)}">${escapeHtml(data.entry.title)}</a>. It now appears in the library.`;
+      $('msg').className = 'msg ok';
+      const password = $('password').value;
+      form.reset();
+      $('password').value = password;
+      $('date').value = new Date().toISOString().slice(0, 10);
+      fileText = '';
+      loadList();
+    } catch (err) {
+      showMsg($('msg'), err.message, false);
+    } finally {
+      $('submit').disabled = false;
+    }
+  });
+
+  async function loadList() {
+    const articles = await fetch('articles/articles.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => []);
+    const cats = [...new Set(articles.map(a => a.category).filter(Boolean))];
+    $('categories').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+    const uploads = articles.filter(a => a.uploaded).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    $('noUploads').hidden = uploads.length > 0;
+    $('uploads').innerHTML = uploads.map(a => `
+      <li>
+        <div>
+          <a href="articles/${encodeURIComponent(a.file)}">${escapeHtml(a.title)}</a>
+          <div class="meta">${escapeHtml([a.category, a.date].filter(Boolean).join(' · '))}</div>
+        </div>
+        <button class="danger" data-file="${escapeHtml(a.file)}" data-title="${escapeHtml(a.title)}" type="button">Delete</button>
+      </li>`).join('');
+  }
+
+  $('uploads').addEventListener('click', async e => {
+    const btn = e.target.closest('button[data-file]');
+    if (!btn) return;
+    if (!$('password').value) return showMsg($('listMsg'), 'Enter the upload password in the form above first.', false);
+    if (!confirm(`Delete "${btn.dataset.title}" from the library?`)) return;
+    btn.disabled = true;
+    const res = await fetch('api/articles/' + encodeURIComponent(btn.dataset.file), {
+      method: 'DELETE',
+      headers: { 'X-Upload-Password': $('password').value },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) showMsg($('listMsg'), `Deleted "${btn.dataset.title}".`, true);
+    else { showMsg($('listMsg'), data.error || 'Delete failed.', false); btn.disabled = false; }
+    loadList();
+  });
+
+  fetch('api/status').then(r => r.json()).then(s => {
+    if (!s.uploadsEnabled) {
+      $('disabledNote').hidden = false;
+      $('submit').disabled = true;
+    }
+  }).catch(() => {});
+
+  loadList();
+</script>
+</body>
+</html>
