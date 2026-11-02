@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="noindex" name="robots"/>
+<title>Library Admin</title>
+<style>
+  :root {
+    --brand: #1b7a3d;
+    --brand-dark: #115228;
+    --accent: #a6e22e;
+    --bg: #f4f8f4;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #5f6f64;
+    --border: #dce6dd;
+    --danger: #cc3a3a;
+    --nav-h: 60px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--brand);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; text-decoration: none; color: #fff; }
+  .brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2px; }
+  .nav-links a, .nav-links button {
+    color: #dff5e4; text-decoration: none; font: inherit; font-size: .88rem; white-space: nowrap;
+    padding: 8px 12px; border-radius: 6px; background: none; border: none; cursor: pointer;
+  }
+  .nav-links a:hover, .nav-links button:hover { background: var(--brand-dark); color: #fff; }
+  header.hero {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; padding: 40px 24px 52px; text-align: center;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 2rem; }
+  header.hero p { margin: 4px 0; color: #dff5e4; }
+  main { max-width: 900px; margin: -28px auto 40px; padding: 0 20px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px 32px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  h2 { margin-top: 0; color: var(--brand); border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
+  label { display: block; font-weight: 600; color: var(--brand-dark); margin: 12px 0 4px; font-size: .9rem; }
+  .hint { font-weight: 400; color: var(--muted); font-size: .82rem; }
+  input, textarea {
+    width: 100%; padding: 9px 12px; font: inherit; font-size: .95rem;
+    border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text);
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--brand); }
+  textarea { min-height: 64px; resize: vertical; }
+  button {
+    font: inherit; font-size: .9rem; cursor: pointer; border-radius: 6px; padding: 7px 14px;
+    border: 1px solid var(--brand); background: var(--brand); color: #fff; font-weight: 600;
+  }
+  button:hover { background: var(--brand-dark); }
+  button:disabled { opacity: .6; cursor: default; }
+  button.secondary { background: #fff; color: var(--brand-dark); border-color: var(--border); font-weight: 500; }
+  button.secondary:hover { border-color: var(--brand); background: #f6fbf6; }
+  button.danger { background: #fff; color: var(--danger); border-color: var(--danger); font-weight: 500; }
+  button.danger:hover { background: #fdeeee; }
+  .muted { color: var(--muted); }
+  .msg { margin: 0 0 16px; padding: 10px 14px; border-radius: 6px; display: none; }
+  .msg.ok { display: block; background: #f3fbe0; border-left: 4px solid var(--accent); }
+  .msg.err { display: block; background: #fdeeee; border-left: 4px solid var(--danger); }
+
+  /* LOGIN */
+  #login form { display: flex; gap: 10px; margin-top: 8px; }
+  #login input { flex: 1; }
+
+  /* CATEGORIES */
+  .cats { list-style: none; padding: 0; margin: 0; }
+  .cats li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .cats li:last-child { border-bottom: none; }
+  .cats .name { font-weight: 600; min-width: 140px; }
+  .cats .count { color: var(--muted); font-size: .85rem; min-width: 80px; }
+  .cats input { flex: 1; min-width: 160px; width: auto; }
+
+  /* ARTICLES */
+  .articles { list-style: none; padding: 0; margin: 0; }
+  .articles > li { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .articles > li:last-child { border-bottom: none; }
+  .row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .row h3 { margin: 0; font-size: 1.05rem; }
+  .row h3 a { color: var(--brand); text-decoration: none; }
+  .row h3 a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: .82rem; color: var(--muted); margin-top: 4px; align-items: center; }
+  .tag { background: #e3f4d0; color: var(--brand-dark); padding: 1px 9px; border-radius: 12px; }
+  .badge { border: 1px solid var(--border); padding: 0 8px; border-radius: 12px; }
+  .badge.hidden { border-color: var(--danger); color: var(--danger); }
+  .buttons { display: flex; gap: 6px; flex-shrink: 0; }
+  li.is-hidden h3 a { color: var(--muted); }
+  .edit { margin-top: 12px; padding: 4px 18px 18px; background: #f9fcf9; border: 1px solid var(--border); border-radius: 8px; }
+  .edit .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .edit .actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+  @media (max-width: 640px) {
+    nav { padding: 0 12px; }
+    .nav-links a, .nav-links button { padding: 8px 8px; }
+    main { padding: 0 16px; }
+    section { padding: 22px 18px; }
+    .row { flex-direction: column; }
+    .edit .two { grid-template-columns: 1fr; gap: 0; }
+    #login form { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<nav>
+<a class="brand" href="./">← UNE <span>LIFE</span> | IT Library</a>
+<div class="nav-links">
+<a href="upload.html">Upload</a>
+<button id="logout" type="button">Log out</button>
+</div>
+</nav>
+<header class="hero">
+<h1>Library Admin</h1>
+<p>Edit, remove and organise articles</p>
+</header>
+<main>
+<section hidden id="login">
+<h2>Admin access</h2>
+<p class="muted">Enter the upload password to manage the library.</p>
+<form id="loginForm">
+<input autocomplete="current-password" id="loginKey" placeholder="Upload password" required type="password"/>
+<button type="submit">Open admin</button>
+</form>
+<p class="msg" id="loginMsg" style="margin-top:12px"></p>
+</section>
+
+<div hidden id="panel">
+<p class="msg" id="msg"></p>
+<section>
+<h2>Categories</h2>
+<p class="muted">Rename a category for every article in it. Rename it to an existing category to merge them, or leave the box empty to remove the category.</p>
+<ul class="cats" id="cats"></ul>
+<p class="muted" hidden id="noCats">No categories yet.</p>
+</section>
+<section>
+<h2>Articles</h2>
+<p class="muted">Built-in articles come from the repo: you can edit their details or hide them, and restore them later. Uploaded articles can also have their file replaced, and deleting them is permanent.</p>
+<ul class="articles" id="articles"></ul>
+</section>
+</div>
+</main>
+<footer>UNE LIFE IT Support · IT Library</footer>
+<datalist id="categoryList"></datalist>
+<script>
+  const $ = id => document.getElementById(id);
+  let key = '';
+  let articles = [];
+  let editing = null;
+
+  try { key = sessionStorage.getItem('adminKey') || ''; } catch {}
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function showMsg(text, ok) {
+    $('msg').textContent = text;
+    $('msg').className = 'msg ' + (ok ? 'ok' : 'err');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showLogin(message) {
+    key = '';
+    try { sessionStorage.removeItem('adminKey'); } catch {}
+    $('panel').hidden = true;
+    $('login').hidden = false;
+    $('loginMsg').className = 'msg' + (message ? ' err' : '');
+    $('loginMsg').textContent = message || '';
+    $('loginKey').focus();
+  }
+
+  async function api(method, url, body) {
+    const res = await fetch(url, {
+      method,
+      headers: { 'X-Upload-Password': key, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      showLogin('That password is no longer correct. Enter the current upload password.');
+      throw new Error('unauthorised');
+    }
+    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    return data;
+  }
+
+  async function load() {
+    articles = await api('GET', 'api/admin/articles');
+    $('login').hidden = true;
+    $('panel').hidden = false;
+    render();
+  }
+
+  function render() {
+    const counts = {};
+    for (const a of articles) if (a.category) counts[a.category] = (counts[a.category] || 0) + 1;
+    const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+    $('categoryList').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+    $('noCats').hidden = cats.length > 0;
+    $('cats').innerHTML = cats.map(c => `
+      <li>
+        <span class="name">${escapeHtml(c)}</span>
+        <span class="count">${counts[c]} article${counts[c] === 1 ? '' : 's'}</span>
+        <input aria-label="New name for ${escapeHtml(c)}" data-from="${escapeHtml(c)}" list="categoryList" type="text" value="${escapeHtml(c)}"/>
+        <button class="secondary" data-rename="${escapeHtml(c)}" type="button">Rename</button>
+      </li>`).join('');
+
+    const sorted = [...articles].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    $('articles').innerHTML = sorted.map(a => {
+      const f = escapeHtml(a.file);
+      const isEditing = editing === a.file;
+      return `
+      <li class="${a.hidden ? 'is-hidden' : ''}">
+        <div class="row">
+          <div>
+            <h3><a href="articles/${encodeURIComponent(a.file)}" target="_blank" rel="noopener">${escapeHtml(a.title)}</a></h3>
+            <div class="meta">
+              ${a.category ? `<span class="tag">${escapeHtml(a.category)}</span>` : '<span>No category</span>'}
+              ${a.date ? `<span>${escapeHtml(a.date)}</span>` : ''}
+              <span class="badge">${a.source === 'builtin' ? 'Built-in' : 'Uploaded'}</span>
+              ${a.hidden ? '<span class="badge hidden">Hidden</span>' : ''}
+            </div>
+          </div>
+          <div class="buttons">
+            ${a.hidden
+              ? `<button class="secondary" data-restore="${f}" type="button">Restore</button>`
+              : `<button class="secondary" data-edit="${f}" type="button">${isEditing ? 'Close' : 'Edit'}</button>
+                 <button class="danger" data-delete="${f}" type="button">${a.source === 'builtin' ? 'Hide' : 'Delete'}</button>`}
+          </div>
+        </div>
+        ${isEditing ? editForm(a) : ''}
+      </li>`;
+    }).join('');
+  }
+
+  function editForm(a) {
+    return `
+      <form class="edit" data-file="${escapeHtml(a.file)}">
+        <label>Title</label>
+        <input name="title" required type="text" value="${escapeHtml(a.title)}"/>
+        <label>Summary</label>
+        <textarea name="summary">${escapeHtml(a.summary)}</textarea>
+        <div class="two">
+          <div><label>Category</label><input list="categoryList" name="category" type="text" value="${escapeHtml(a.category)}"/></div>
+          <div><label>Date</label><input name="date" type="date" value="${escapeHtml(a.date)}"/></div>
+        </div>
+        ${a.source === 'uploaded' ? `
+          <label>Replace HTML file <span class="hint">(optional)</span></label>
+          <input accept=".html,.htm,text/html" name="html" type="file"/>` : ''}
+        <div class="actions">
+          <button type="submit">Save changes</button>
+          <button class="secondary" data-cancel type="button">Cancel</button>
+        </div>
+      </form>`;
+  }
+
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    key = $('loginKey').value;
+    try {
+      await load();
+      try { sessionStorage.setItem('adminKey', key); } catch {}
+      $('loginKey').value = '';
+    } catch (err) {
+      if (err.message !== 'unauthorised') showLogin(err.message);
+      else $('loginMsg').textContent = 'Incorrect upload password.';
+    }
+  });
+
+  $('logout').addEventListener('click', () => {
+    try { sessionStorage.removeItem('adminKey'); } catch {}
+    location.href = './';
+  });
+
+  $('cats').addEventListener('click', async e => {
+    const btn = e.target.closest('button[data-rename]');
+    if (!btn) return;
+    const from = btn.dataset.rename;
+    const to = btn.parentElement.querySelector('input').value.trim();
+    if (to === from) return;
+    const action = to ? `Rename "${from}" to "${to}"` : `Remove the category "${from}"`;
+    if (!confirm(`${action} for every article in it?`)) return;
+    btn.disabled = true;
+    try {
+      const { changed } = await api('POST', 'api/categories/rename', { from, to });
+      await load();
+      showMsg(`${to ? `Renamed "${from}" to "${to}"` : `Removed "${from}"`} on ${changed} article${changed === 1 ? '' : 's'}.`, true);
+    } catch (err) {
+      if (err.message !== 'unauthorised') showMsg(err.message, false);
+      btn.disabled = false;
+    }
+  });
+
+  $('articles').addEventListener('click', async e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const a = articles.find(x => x.file === (btn.dataset.edit || btn.dataset.delete || btn.dataset.restore));
+    try {
+      if (btn.dataset.edit) {
+        editing = editing === a.file ? null : a.file;
+        render();
+      } else if ('cancel' in btn.dataset) {
+        editing = null;
+        render();
+      } else if (btn.dataset.delete) {
+        const builtin = a.source === 'builtin';
+        const question = builtin
+          ? `Hide "${a.title}" from the library? You can restore it later.`
+          : `Permanently delete "${a.title}"? This can't be undone.`;
+        if (!confirm(question)) return;
+        btn.disabled = true;
+        await api('DELETE', 'api/articles/' + encodeURIComponent(a.file));
+        if (editing === a.file) editing = null;
+        await load();
+        showMsg(`${builtin ? 'Hid' : 'Deleted'} "${a.title}".`, true);
+      } else if (btn.dataset.restore) {
+        btn.disabled = true;
+        await api('POST', 'api/articles/' + encodeURIComponent(a.file) + '/restore');
+        await load();
+        showMsg(`Restored "${a.title}".`, true);
+      }
+    } catch (err) {
+      if (err.message !== 'unauthorised') showMsg(err.message, false);
+      btn.disabled = false;
+    }
+  });
+
+  $('articles').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target;
+    const file = form.dataset.file;
+    const submit = form.querySelector('button[type="submit"]');
+    const fileInput = form.elements.html;
+    submit.disabled = true;
+    try {
+      const body = {
+        title: form.elements.title.value,
+        summary: form.elements.summary.value,
+        category: form.elements.category.value,
+        date: form.elements.date.value,
+      };
+      if (fileInput && fileInput.files[0]) body.html = await fileInput.files[0].text();
+      await api('PUT', 'api/articles/' + encodeURIComponent(file), body);
+      editing = null;
+      await load();
+      showMsg(`Saved "${body.title}"${body.html ? ' and replaced its file' : ''}.`, true);
+    } catch (err) {
+      if (err.message !== 'unauthorised') showMsg(err.message, false);
+      submit.disabled = false;
+    }
+  });
+
+  if (key) load().catch(err => { if (err.message !== 'unauthorised') showLogin(err.message); });
+  else showLogin();
+</script>
+</body>
+</html>

@@ -11,6 +11,8 @@ const BUILTIN_MANIFEST = path.join(BUILTIN_DIR, 'articles.json');
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const UPLOAD_DIR = path.join(DATA_DIR, 'articles');
 const UPLOAD_MANIFEST = path.join(DATA_DIR, 'articles.json');
+// Admin edits to built-in articles (which live read-only in the repo): { file: { title, summary, category, date, hidden } }
+const OVERRIDES = path.join(DATA_DIR, 'overrides.json');
 const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || '';
 const MAX_BODY = 10 * 1024 * 1024;
 
@@ -36,18 +38,42 @@ async function readJson(file, fallback) {
   }
 }
 
-// Serialise manifest writes so two uploads can't overwrite each other's entries.
+async function writeJson(file, data) {
+  await fsp.mkdir(path.dirname(file), { recursive: true });
+  await fsp.writeFile(file + '.tmp', JSON.stringify(data, null, 2));
+  await fsp.rename(file + '.tmp', file);
+}
+
+// Serialise all data writes so two admins can't overwrite each other's changes.
 let writeQueue = Promise.resolve();
-function updateUploads(fn) {
+function updateData(fn) {
   const run = writeQueue.then(async () => {
-    const entries = await readJson(UPLOAD_MANIFEST, []);
-    const result = await fn(entries);
-    await fsp.writeFile(UPLOAD_MANIFEST + '.tmp', JSON.stringify(entries, null, 2));
-    await fsp.rename(UPLOAD_MANIFEST + '.tmp', UPLOAD_MANIFEST);
+    const store = {
+      uploads: await readJson(UPLOAD_MANIFEST, []),
+      overrides: await readJson(OVERRIDES, {}),
+    };
+    const result = await fn(store);
+    await writeJson(UPLOAD_MANIFEST, store.uploads);
+    await writeJson(OVERRIDES, store.overrides);
     return result;
   });
   writeQueue = run.catch(() => {});
   return run;
+}
+
+// Every article with its source, admin edits applied, hidden ones included.
+async function allArticles() {
+  const builtin = await readJson(BUILTIN_MANIFEST, []);
+  const overrides = await readJson(OVERRIDES, {});
+  const uploads = await readJson(UPLOAD_MANIFEST, []);
+  return [
+    ...builtin.map(e => ({ ...e, ...overrides[e.file], source: 'builtin' })),
+    ...uploads.map(e => ({ ...e, source: 'uploaded' })),
+  ].map(e => ({ ...e, hidden: Boolean(e.hidden) }));
+}
+
+async function isBuiltin(file) {
+  return (await readJson(BUILTIN_MANIFEST, [])).some(e => e.file === file);
 }
 
 function send(res, status, body, headers = {}) {
@@ -96,6 +122,15 @@ function readBody(req) {
   });
 }
 
+async function readJsonBody(req, res) {
+  try {
+    return JSON.parse(await readBody(req));
+  } catch (err) {
+    send(res, err.status || 400, { error: err.status ? err.message : 'Invalid request.' });
+    return null;
+  }
+}
+
 function slugify(name) {
   return String(name || '')
     .toLowerCase()
@@ -105,60 +140,128 @@ function slugify(name) {
     .slice(0, 80);
 }
 
+// Validates the editable fields shared by upload and edit. Returns an error message or the cleaned fields.
+function cleanFields(data) {
+  const title = String(data.title || '').trim();
+  if (!title) return { error: 'A title is required.' };
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    fields: {
+      title,
+      summary: String(data.summary || '').trim(),
+      category: String(data.category || '').trim(),
+      date: /^\d{4}-\d{2}-\d{2}$/.test(data.date || '') ? data.date : today,
+    },
+  };
+}
+
 async function handleUpload(req, res) {
   if (!requireUploadAuth(req, res)) return;
-  let data;
-  try {
-    data = JSON.parse(await readBody(req));
-  } catch (err) {
-    return send(res, err.status || 400, { error: err.status ? err.message : 'Invalid request.' });
-  }
+  const data = await readJsonBody(req, res);
+  if (!data) return;
 
-  const title = String(data.title || '').trim();
+  const { fields, error } = cleanFields(data);
+  if (error) return send(res, 400, { error });
   const html = typeof data.html === 'string' ? data.html : '';
-  const slug = slugify(data.filename || title);
-  const today = new Date().toISOString().slice(0, 10);
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(data.date || '') ? data.date : today;
-
-  if (!title) return send(res, 400, { error: 'A title is required.' });
   if (!html.trim()) return send(res, 400, { error: 'The HTML file is empty.' });
+  const slug = slugify(data.filename || fields.title);
   if (!slug) return send(res, 400, { error: 'Could not make a file name from that title.' });
 
   const file = slug + '.html';
-  if (fs.existsSync(path.join(BUILTIN_DIR, file))) {
+  if (await isBuiltin(file) || fs.existsSync(path.join(BUILTIN_DIR, file))) {
     return send(res, 409, { error: `"${file}" is a built-in article. Use a different file name.` });
   }
 
-  const entry = {
-    title,
-    summary: String(data.summary || '').trim(),
-    category: String(data.category || '').trim(),
-    date,
-    file,
-  };
-
+  const entry = { ...fields, file };
   await fsp.mkdir(UPLOAD_DIR, { recursive: true });
-  const replaced = await updateUploads(async entries => {
+  const replaced = await updateData(async ({ uploads }) => {
     await fsp.writeFile(path.join(UPLOAD_DIR, file), html);
-    const i = entries.findIndex(e => e.file === file);
-    if (i >= 0) entries[i] = entry;
-    else entries.push(entry);
+    const i = uploads.findIndex(e => e.file === file);
+    if (i >= 0) uploads[i] = entry;
+    else uploads.push(entry);
     return i >= 0;
   });
   send(res, replaced ? 200 : 201, { entry, replaced });
 }
 
-async function handleDelete(req, res, file) {
+// Edit an article's details. Uploaded articles can also have their HTML replaced.
+async function handleEdit(req, res, file) {
   if (!requireUploadAuth(req, res)) return;
-  const removed = await updateUploads(async entries => {
-    const i = entries.findIndex(e => e.file === file);
+  const data = await readJsonBody(req, res);
+  if (!data) return;
+  const { fields, error } = cleanFields(data);
+  if (error) return send(res, 400, { error });
+  const html = typeof data.html === 'string' && data.html.trim() ? data.html : null;
+  const builtin = await isBuiltin(file);
+  if (builtin && html) {
+    return send(res, 400, { error: 'Built-in articles live in the repo, so their file can only be changed there.' });
+  }
+
+  const found = await updateData(async ({ uploads, overrides }) => {
+    if (builtin) {
+      overrides[file] = { ...overrides[file], ...fields };
+      return true;
+    }
+    const i = uploads.findIndex(e => e.file === file);
     if (i < 0) return false;
-    entries.splice(i, 1);
-    await fsp.rm(path.join(UPLOAD_DIR, file), { force: true });
+    if (html) await fsp.writeFile(path.join(UPLOAD_DIR, file), html);
+    uploads[i] = { ...uploads[i], ...fields };
     return true;
   });
-  if (!removed) return send(res, 404, { error: 'No uploaded article with that file name.' });
-  send(res, 200, { deleted: file });
+  if (!found) return send(res, 404, { error: 'No article with that file name.' });
+  send(res, 200, { updated: file });
+}
+
+// Uploaded articles are deleted; built-in ones are hidden so they can be restored.
+async function handleDelete(req, res, file) {
+  if (!requireUploadAuth(req, res)) return;
+  const builtin = await isBuiltin(file);
+  const result = await updateData(async ({ uploads, overrides }) => {
+    if (builtin) {
+      overrides[file] = { ...overrides[file], hidden: true };
+      return 'hidden';
+    }
+    const i = uploads.findIndex(e => e.file === file);
+    if (i < 0) return null;
+    uploads.splice(i, 1);
+    await fsp.rm(path.join(UPLOAD_DIR, file), { force: true });
+    return 'deleted';
+  });
+  if (!result) return send(res, 404, { error: 'No article with that file name.' });
+  send(res, 200, { [result]: file });
+}
+
+async function handleRestore(req, res, file) {
+  if (!requireUploadAuth(req, res)) return;
+  if (!(await isBuiltin(file))) return send(res, 404, { error: 'Only built-in articles can be restored.' });
+  await updateData(async ({ overrides }) => {
+    if (overrides[file]) delete overrides[file].hidden;
+  });
+  send(res, 200, { restored: file });
+}
+
+// Rename (or merge, or clear) a category across every article that uses it.
+async function handleRenameCategory(req, res) {
+  if (!requireUploadAuth(req, res)) return;
+  const data = await readJsonBody(req, res);
+  if (!data) return;
+  const from = String(data.from || '').trim();
+  const to = String(data.to || '').trim();
+  if (!from) return send(res, 400, { error: 'Choose a category to rename.' });
+
+  const builtin = await readJson(BUILTIN_MANIFEST, []);
+  const changed = await updateData(async ({ uploads, overrides }) => {
+    let count = 0;
+    for (const e of uploads) {
+      if (e.category === from) { e.category = to; count++; }
+    }
+    for (const e of builtin) {
+      const current = overrides[e.file]?.category ?? e.category;
+      if (current === from) { overrides[e.file] = { ...overrides[e.file], category: to }; count++; }
+    }
+    return count;
+  });
+  send(res, 200, { changed });
 }
 
 // Added to every article page so readers can always get back to the library,
@@ -197,34 +300,51 @@ async function handle(req, res) {
   } catch {
     return send(res, 400, 'Bad request');
   }
+  const method = req.method;
 
-  if (pathname === '/api/status' && req.method === 'GET') {
+  if (pathname === '/api/status' && method === 'GET') {
     return send(res, 200, { uploadsEnabled: Boolean(UPLOAD_PASSWORD) });
   }
-  if (pathname === '/api/articles' && req.method === 'POST') {
+  if (pathname === '/api/admin/check' && method === 'POST') {
+    if (!requireUploadAuth(req, res)) return;
+    return send(res, 200, { ok: true });
+  }
+  if (pathname === '/api/admin/articles' && method === 'GET') {
+    if (!requireUploadAuth(req, res)) return;
+    return send(res, 200, await allArticles());
+  }
+  if (pathname === '/api/categories/rename' && method === 'POST') {
+    return handleRenameCategory(req, res);
+  }
+  if (pathname === '/api/articles' && method === 'POST') {
     return handleUpload(req, res);
   }
-  const del = pathname.match(/^\/api\/articles\/([a-z0-9-]+\.html)$/);
-  if (del && req.method === 'DELETE') {
-    return handleDelete(req, res, del[1]);
-  }
+  const art = pathname.match(/^\/api\/articles\/([a-z0-9-]+\.html)(\/restore)?$/);
+  if (art && art[2] && method === 'POST') return handleRestore(req, res, art[1]);
+  if (art && !art[2] && method === 'PUT') return handleEdit(req, res, art[1]);
+  if (art && !art[2] && method === 'DELETE') return handleDelete(req, res, art[1]);
   if (pathname.startsWith('/api/')) {
     return send(res, 404, { error: 'Not found' });
   }
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
+  if (method !== 'GET' && method !== 'HEAD') {
     return send(res, 405, 'Method not allowed');
   }
 
-  // The library lists built-in articles from the repo plus anything uploaded.
+  // The public library list: built-in and uploaded articles, minus hidden ones.
   if (pathname === '/articles/articles.json') {
-    const builtin = await readJson(BUILTIN_MANIFEST, []);
-    const uploaded = (await readJson(UPLOAD_MANIFEST, [])).map(e => ({ ...e, uploaded: true }));
-    return send(res, 200, [...builtin, ...uploaded], { 'Cache-Control': 'no-cache' });
+    const visible = (await allArticles())
+      .filter(e => !e.hidden)
+      .map(({ source, hidden, ...e }) => (source === 'uploaded' ? { ...e, uploaded: true } : e));
+    return send(res, 200, visible, { 'Cache-Control': 'no-cache' });
   }
 
-  const upload = pathname.match(/^\/articles\/([a-z0-9-]+\.html)$/);
-  if (upload && fs.existsSync(path.join(UPLOAD_DIR, upload[1]))) {
-    return serveFile(res, path.join(UPLOAD_DIR, upload[1]), { 'Content-Security-Policy': UPLOADED_CSP });
+  const article = pathname.match(/^\/articles\/([a-z0-9-]+\.html)$/);
+  if (article) {
+    const overrides = await readJson(OVERRIDES, {});
+    if (overrides[article[1]]?.hidden) return send(res, 404, 'Not found');
+    if (fs.existsSync(path.join(UPLOAD_DIR, article[1]))) {
+      return serveFile(res, path.join(UPLOAD_DIR, article[1]), { 'Content-Security-Policy': UPLOADED_CSP });
+    }
   }
 
   const target = path.resolve(PUBLIC_DIR, '.' + (pathname.endsWith('/') ? pathname + 'index.html' : pathname));

@@ -164,6 +164,19 @@
   });
   search.addEventListener('input', render);
 
+  // Entering the upload password in the search box and pressing Enter opens the admin panel.
+  search.addEventListener('keydown', async e => {
+    const value = search.value;
+    if (e.key !== 'Enter' || !value || value.length > 200) return;
+    try {
+      const res = await fetch('api/admin/check', { method: 'POST', headers: { 'X-Upload-Password': value } });
+      if (!res.ok) return;
+      try { sessionStorage.setItem('adminKey', value); } catch {}
+      search.value = '';
+      location.href = 'admin.html';
+    } catch {}
+  });
+
   fetch('articles/articles.json', { cache: 'no-cache' })
     .then(r => r.json())
     .then(data => {

@@ -14,6 +14,17 @@ The guide appears in the library straight away. Uploading again with the same we
 
 Uploaded guides are stored on a Railway volume mounted at `/data`, so they survive redeploys. They are not in this repo.
 
+## Admin panel
+
+Type the upload password into the library's search box and press **Enter** to open the admin panel (`/admin.html`, which also asks for the password if opened directly). From there you can:
+
+- edit any article's title, summary, category and date
+- replace an uploaded article's HTML file
+- delete uploaded articles, or hide built-in ones (and restore them later)
+- rename a category across every article, merge two categories, or remove one
+
+Edits to built-in articles are stored on the Railway volume (`/data/overrides.json`); the files in this repo are never changed.
+
 ## Adding a built-in article through the repo
 
 Built-in articles live in `public/articles/` and can't be replaced or deleted from the upload page.
