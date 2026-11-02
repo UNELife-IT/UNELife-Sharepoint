@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Article Title</title>
+<style>
+  :root {
+    --brand: #1b7a3d;
+    --brand-dark: #115228;
+    --accent: #a6e22e;
+    --bg: #f4f8f4;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #5f6f64;
+    --border: #dce6dd;
+    --nav-h: 60px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h);
+    background: var(--brand);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  .brand { font-weight: 700; font-size: 1.05rem; white-space: nowrap; text-decoration: none; color: #fff; }
+  .brand span { color: var(--accent); }
+  header.hero {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; padding: 48px 24px 56px; text-align: center;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 2rem; }
+  header.hero p { margin: 4px 0; color: #dff5e4; }
+  main { max-width: 900px; margin: -28px auto 40px; padding: 0 20px; }
+  section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px 32px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  h2 { margin-top: 0; color: var(--brand); border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
+  h3 { color: var(--brand-dark); margin-bottom: 6px; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  code { background: #e9f3ea; padding: 2px 6px; border-radius: 4px; font-size: .9em; }
+  .callout { background: #f3fbe0; border-left: 4px solid var(--accent); padding: 12px 16px; border-radius: 4px; margin: 14px 0; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    section { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+<nav>
+<a class="brand" href="../" title="Back to the IT Library">← UNE <span>LIFE</span> | IT Library</a>
+</nav>
+<header class="hero">
+<h1>Article Title</h1>
+<p>One-line description of the article</p>
+</header>
+<main>
+<section>
+<h2>Section heading</h2>
+<p>Write your content here. Copy a whole &lt;section&gt; block to add more sections.</p>
+<div class="callout"><strong>Tip:</strong> Use a callout like this for important notes.</div>
+</section>
+</main>
+<footer>UNE LIFE IT Support</footer>
+</body>
+</html>
