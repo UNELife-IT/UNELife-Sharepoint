@@ -79,7 +79,14 @@
   .uploads a:hover { text-decoration: underline; }
   .uploads .meta { font-size: .82rem; color: var(--muted); }
   .muted { color: var(--muted); }
-  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px 20px 80px; }
+  .back-btn {
+    position: fixed; left: 24px; bottom: 24px; z-index: 100;
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 24px;
+    background: var(--brand); color: #fff; font-weight: 600; font-size: 15px; text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .back-btn:hover { background: var(--brand-dark); }
   @media (max-width: 600px) {
     nav { padding: 0 16px; }
     main { padding: 0 16px; }
@@ -142,6 +149,7 @@
 </section>
 </main>
 <footer>UNE LIFE IT Support · IT Library</footer>
+<a class="back-btn" href="./">← Back to library</a>
 <script>
   const $ = id => document.getElementById(id);
   const form = $('form');

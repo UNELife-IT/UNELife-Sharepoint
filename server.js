@@ -161,9 +161,24 @@ async function handleDelete(req, res, file) {
   send(res, 200, { deleted: file });
 }
 
+// Added to every article page so readers can always get back to the library,
+// including uploaded guides that have no navigation of their own.
+const BACK_BUTTON = `
+<a href="/" id="library-back-btn" aria-label="Back to the IT Library" style="position:fixed;left:24px;bottom:24px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:24px;background:#1b7a3d;color:#fff;font:600 15px/1.2 'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.3);">&larr; Back to library</a>
+<style media="print">#library-back-btn{display:none!important}</style>
+`;
+
+function addBackButton(html) {
+  const i = html.toLowerCase().lastIndexOf('</body>');
+  return i < 0 ? html + BACK_BUTTON : html.slice(0, i) + BACK_BUTTON + html.slice(i);
+}
+
 async function serveFile(res, file, headers = {}) {
   try {
-    const body = await fsp.readFile(file);
+    let body = await fsp.readFile(file);
+    if (path.extname(file).toLowerCase() === '.html' && path.dirname(file) !== PUBLIC_DIR) {
+      body = addBackButton(body.toString('utf8'));
+    }
     send(res, 200, body, {
       'Content-Type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
       'Cache-Control': 'no-cache',
